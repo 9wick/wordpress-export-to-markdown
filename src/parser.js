@@ -29,6 +29,7 @@ async function parseFilePromise(config) {
 }
 
 function getItemsOfType(data, type) {
+	// data.rss.channel[0].item.map(item => console.log(item.post_type[0]));
 	return data.rss.channel[0].item.filter(item => item.post_type[0] === type);
 }
 
@@ -36,22 +37,28 @@ function collectPosts(data, config) {
 	// this is passed into getPostContent() for the markdown conversion
 	const turndownService = translator.initTurndownService();
 
-	const posts = getItemsOfType(data, 'post')
-		.filter(post => post.status[0] !== 'trash' && post.status[0] !== 'draft')
-		.map(post => ({
-			// meta data isn't written to file, but is used to help with other things
-			meta: {
-				id: getPostId(post),
-				slug: getPostSlug(post),
-				coverImageId: getPostCoverImageId(post),
-				imageUrls: []
-			},
-			frontmatter: {
-				title: getPostTitle(post),
-				date: getPostDate(post)
-			},
-			content: translator.getPostContent(post, turndownService, config)
-		}));
+	const posts = [ ...getItemsOfType(data, 'post'), ...getItemsOfType(data, 'page'), ...getItemsOfType(data, 'docs')]
+		.filter((post) => {
+			return post.status[0] !== 'trash' && post.status[0] !== 'draft'
+		})
+		.map(post => {
+
+			return {
+				// meta data isn't written to file, but is used to help with other things
+				meta: {
+					id: getPostId(post),
+					slug: getPostSlug(post),
+					coverImageId: getPostCoverImageId(post),
+					imageUrls: [],
+					path : getPostPath(post),
+				},
+				frontmatter: {
+					title: getPostTitle(post),
+					date: getPostDate(post)
+				},
+				content: translator.getPostContent(post, turndownService, config)
+			}
+		});
 
 	console.log(posts.length + ' posts found.');
 	return posts;
@@ -63,6 +70,20 @@ function getPostId(post) {
 
 function getPostSlug(post) {
 	return post.post_name[0];
+}
+
+function getPostPath(post) {
+	// console.log("getPostPath");
+
+	if(post.link[0] ){
+		// console.log(post.link[0]);
+		return post.link[0].replace("https://docs.obniz.io/", "");
+	}
+	if(post.guid[0] && post.guid[0]['_']){
+		// console.log(post.guid[0]);
+		return post.guid[0]['_'].replace("https://docs.obniz.io/", "");
+	}
+	return null;
 }
 
 function getPostCoverImageId(post) {

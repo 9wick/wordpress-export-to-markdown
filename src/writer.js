@@ -46,7 +46,7 @@ async function writeMarkdownFilesPromise(posts, config ) {
 	const payloads = posts.map((post, index) => ({
 		item: post,
 		name: post.meta.slug,
-		destinationPath: getPostPath(post, config),
+		destinationPath: getPostPath(post, config,posts),
 		delay: index * settings.markdown_file_write_delay
 	}));
 
@@ -109,11 +109,21 @@ async function loadImageFilePromise(imageUrl) {
 	return buffer;
 }
 
-function getPostPath(post, config) {
+function getPostPath(post, config, posts) {
 	const dt = luxon.DateTime.fromISO(post.frontmatter.date);
 
+	console.log("getPostPath");
+	console.log(post.meta.path);
+
+	let folders = [...post.meta.path.split("/")];
+	folders.pop();
+	folders.pop();
+	const lang = folders.shift();
+	const langsuffix = lang === "en" ? "" : "-" + lang;
+
 	// start with base output dir
-	const pathSegments = [config.output];
+	const pathSegments = [config.output, ...folders];
+
 
 	if (config.yearFolders) {
 		pathSegments.push(dt.toFormat('yyyy'));
@@ -130,10 +140,10 @@ function getPostPath(post, config) {
 	}
 
 	// use slug fragment as folder or filename as specified
-	if (config.postFolders) {
-		pathSegments.push(slugFragment, 'index.md');
+	if (config.postFolders || posts.find(e=>e.meta.path.startsWith(post.meta.path)) ) {
+		pathSegments.push(slugFragment, 'index'+langsuffix+'.md');
 	} else {
-		pathSegments.push(slugFragment + '.md');
+		pathSegments.push(slugFragment + langsuffix+'.md');
 	}
 
 	return path.join(...pathSegments);

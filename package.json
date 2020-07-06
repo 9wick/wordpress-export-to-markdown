@@ -12,7 +12,8 @@
 		"wordpress"
 	],
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node index.js --post-folders=false --wizard=false"
 	},
 	"author": "Will Boyd <will@codersblock.com> (https://codersblock.com)",
 	"license": "MIT",
