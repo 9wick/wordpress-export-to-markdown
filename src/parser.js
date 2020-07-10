@@ -120,7 +120,7 @@ function collectAttachedImages(data) {
 
 function collectScrapedImages(data) {
 	const images = [];
-	getItemsOfType(data, 'post').forEach(post => {
+	[...getItemsOfType(data, 'post'),...getItemsOfType(data, 'page'),...getItemsOfType(data, 'docs'), ].forEach(post => {
 		const postId = post.post_id[0];
 		const postContent = post.encoded[0];
 		const postLink = post.link[0];
